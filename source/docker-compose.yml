@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: xzs-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: xzs
+      MYSQL_USER: xzs
+      MYSQL_PASSWORD: xzs123456
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - xzs-network
+
+  # 后端服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: xzs-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/xzs?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123456
+      TZ: Asia/Shanghai
+    volumes:
+      - ./xzs/log:/app/log
+    depends_on:
+      - mysql
+    networks:
+      - xzs-network
+
+  # 前端管理端
+  frontend-admin:
+    build:
+      context: ./vue/xzs-admin
+      dockerfile: Dockerfile
+    container_name: xzs-admin
+    restart: always
+    ports:
+      - "8002:80"
+    depends_on:
+      - backend
+    networks:
+      - xzs-network
+
+  # 前端学生端
+  frontend-student:
+    build:
+      context: ./vue/xzs-student
+      dockerfile: Dockerfile
+    container_name: xzs-student
+    restart: always
+    ports:
+      - "8001:80"
+    depends_on:
+      - backend
+    networks:
+      - xzs-network
+
+volumes:
+  mysql_data:
+
+networks:
+  xzs-network:
+    driver: bridge
+
+
