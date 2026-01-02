@@ -6,12 +6,12 @@ FROM maven:3.8.6-eclipse-temurin-8 AS build
 WORKDIR /app
 
 # 复制 pom.xml 并下载依赖（利用 Docker 缓存层）
-COPY xzs/pom.xml .
+COPY source/xzs/pom.xml .
 RUN mvn dependency:go-offline -B
 
 # 复制源代码并构建
-COPY xzs/src ./xzs/src
-COPY xzs/pom.xml ./xzs/
+COPY source/xzs/src ./xzs/src
+COPY source/xzs/pom.xml ./xzs/
 RUN mvn clean package -DskipTests -B
 
 # 第二阶段：运行阶段
@@ -32,7 +32,7 @@ COPY --from=build /app/xzs/target/xzs-*.jar app.jar
 COPY --from=build /app/xzs/target/classes/static ./static
 
 # 复制 SQL 初始化文件到镜像中
-COPY xzs-mysql.sql /app/sql/xzs-mysql.sql
+COPY source/xzs-mysql.sql /app/sql/xzs-mysql.sql
 
 # 暴露端口（Railway 会自动映射）
 EXPOSE 8000
