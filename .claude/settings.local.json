@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(python:*)",
+      "Bash(dir:*)",
+      "Bash(copy:*)",
+      "Bash(cp:*)"
     ]
   }
 }
