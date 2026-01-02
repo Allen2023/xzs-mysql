@@ -18,24 +18,24 @@
 
 ### 4. 配置应用服务
 1. 在应用服务中，进入 **"Variables"** 标签
-2. 添加以下环境变量：
+2. **只需添加一个环境变量**（数据库配置已在配置文件中设置好）：
 
 ```bash
 SPRING_PROFILES_ACTIVE=prod
-SPRING_DATASOURCE_URL=jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
-SPRING_DATASOURCE_USERNAME=${MYSQLUSER}
-SPRING_DATASOURCE_PASSWORD=${MYSQLPASSWORD}
-SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
-TZ=Asia/Shanghai
 ```
 
-**注意**：项目已配置为 Docker 模式，数据库连接通过环境变量配置，不再硬编码。
+**说明**：
+- 配置文件 `application-prod.yml` 已包含默认的 Railway MySQL 数据库连接信息
+- 无需手动设置数据库相关环境变量，可直接部署
+- 如果需要使用其他数据库，可以设置 `SPRING_DATASOURCE_URL` 等环境变量来覆盖默认值
 
 ### 5. 初始化数据库
-1. 在数据库服务中，点击 **"Connect"** 获取连接信息
-2. 使用 MySQL 客户端连接数据库
-3. 从 [文档网站](https://www.mindskip.net:999) 下载 SQL 初始化脚本
-4. 执行 SQL 脚本初始化数据库
+1. 在数据库服务中，点击 **"Query"** 标签
+2. 从项目仓库打开 `source/xzs-mysql.sql` 文件
+3. 复制 SQL 内容并粘贴到 Query 编辑器
+4. 点击 **"Run"** 执行 SQL 脚本初始化数据库
+
+**提示**：SQL 文件已包含在 Docker 镜像中（`/app/sql/xzs-mysql.sql`），也可以通过应用容器访问
 
 ### 6. 部署
 Railway 会自动检测 Dockerfile 并开始构建部署

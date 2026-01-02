@@ -3,10 +3,10 @@ logging:
 
 spring:
   datasource:
-    # Docker 模式下通过环境变量配置数据库连接
-    # 环境变量格式: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD
-    # 示例: SPRING_DATASOURCE_URL=jdbc:mysql://host:port/database?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/xzs?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true}
+    # Railway MySQL 数据库配置（默认值，可通过环境变量覆盖）
+    # 如果使用 Railway MySQL，Railway 会自动提供 MYSQLHOST、MYSQLPORT 等环境变量
+    # 可以通过设置 SPRING_DATASOURCE_URL 等环境变量来覆盖这些默认值
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://ballast.proxy.rlwy.net:48403/railway?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true}
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:}
+    password: ${SPRING_DATASOURCE_PASSWORD:FMeLIVDaDFmSRjjzuiUlWOvgiEaNVsel}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}

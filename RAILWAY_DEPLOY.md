@@ -37,39 +37,53 @@
 
 ### 4. 配置环境变量
 
-**重要提示**：项目已配置为 Docker 模式，所有数据库连接信息通过环境变量配置，不再硬编码在配置文件中。
+**重要提示**：配置文件 `application-prod.yml` 已经包含了默认的 Railway MySQL 数据库连接信息，**无需手动设置数据库环境变量**即可直接部署。
 
-在 Railway 项目设置中，添加以下环境变量：
+#### 最小配置（推荐）
 
-#### 必需的环境变量
+如果使用配置文件中的默认数据库连接，只需设置以下环境变量：
 
 ```bash
-# Spring 配置
+# Spring 配置（必需）
 SPRING_PROFILES_ACTIVE=prod
-
-# 数据库配置（如果使用 Railway MySQL，这些会自动设置）
-SPRING_DATASOURCE_URL=jdbc:mysql://MYSQLHOST:PORT/MYSQLDATABASE?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
-SPRING_DATASOURCE_USERNAME=root
-SPRING_DATASOURCE_PASSWORD=your_password
-SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
 
 # JVM 参数（可选）
 JAVA_OPTS=-Xmx512m -Xms256m
 
-# 时区
+# 时区（可选）
 TZ=Asia/Shanghai
 ```
 
-#### 如果使用 Railway MySQL
+**默认数据库配置**（已在 `application-prod.yml` 中配置）：
+- Host: `ballast.proxy.rlwy.net`
+- Port: `48403`
+- Database: `railway`
+- Username: `root`
+- Password: `FMeLIVDaDFmSRjjzuiUlWOvgiEaNVsel`
 
-Railway 会自动提供以下环境变量：
+#### 如果需要覆盖默认数据库配置
+
+如果您想使用其他数据库，可以在 Railway 项目设置中添加以下环境变量来覆盖默认值：
+
+```bash
+SPRING_PROFILES_ACTIVE=prod
+SPRING_DATASOURCE_URL=jdbc:mysql://YOUR_HOST:PORT/YOUR_DATABASE?useSSL=false&useUnicode=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowPublicKeyRetrieval=true&allowMultiQueries=true
+SPRING_DATASOURCE_USERNAME=your_username
+SPRING_DATASOURCE_PASSWORD=your_password
+SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+TZ=Asia/Shanghai
+```
+
+#### 如果使用 Railway MySQL（自动环境变量）
+
+如果您的 Railway 项目中有 MySQL 数据库服务，Railway 会自动提供以下环境变量：
 - `MYSQLHOST`
 - `MYSQLPORT`
 - `MYSQLDATABASE`
 - `MYSQLUSER`
 - `MYSQLPASSWORD`
 
-您需要在应用服务中设置：
+您可以通过设置以下环境变量来使用 Railway 自动提供的数据库：
 
 ```bash
 SPRING_PROFILES_ACTIVE=prod
@@ -81,9 +95,10 @@ TZ=Asia/Shanghai
 ```
 
 **配置说明**：
-- 配置文件（`application-prod.yml` 等）已更新为使用环境变量占位符
-- 如果环境变量未设置，将使用默认值（localhost:3306/xzs）
-- 在 Docker/Railway 环境中，必须通过环境变量提供数据库连接信息
+- 配置文件（`application-prod.yml`）已包含默认的 Railway MySQL 连接信息
+- 如果环境变量未设置，将使用配置文件中的默认值
+- 可以通过设置环境变量来覆盖配置文件中的默认值
+- **推荐**：直接使用默认配置，只需设置 `SPRING_PROFILES_ACTIVE=prod` 即可
 
 ### 5. 配置构建和部署
 
@@ -94,11 +109,47 @@ TZ=Asia/Shanghai
 
 ### 6. 初始化数据库
 
-在首次部署前，您需要：
+在首次部署前，您需要执行 SQL 初始化脚本。SQL 文件 `xzs-mysql.sql` 已经包含在 Docker 镜像中（位于 `/app/sql/xzs-mysql.sql`）。
 
-1. 连接到 MySQL 数据库
-2. 执行 SQL 初始化脚本（通常在 `sql/` 目录下）
-3. 或者使用 Railway 的数据库管理工具导入 SQL 文件
+#### 方式 A：使用 Railway 数据库 Query 功能（推荐）
+
+1. 在 Railway 项目中，找到您的 MySQL 数据库服务
+2. 点击数据库服务，进入详情页
+3. 点击 **"Query"** 标签
+4. 从项目仓库中打开 `source/xzs-mysql.sql` 文件
+5. 复制整个 SQL 文件内容
+6. 粘贴到 Query 编辑器中
+7. 点击 **"Run"** 执行 SQL 脚本
+
+#### 方式 B：使用 MySQL 客户端连接执行
+
+1. 在数据库服务中，点击 **"Connect"** 获取连接信息
+2. 使用 MySQL 客户端（如 MySQL Workbench、DBeaver 或命令行）连接数据库：
+   ```bash
+   mysql -h ballast.proxy.rlwy.net -P 48403 -u root -p railway
+   ```
+3. 输入密码：`FMeLIVDaDFmSRjjzuiUlWOvgiEaNVsel`
+4. 执行 SQL 文件：
+   ```sql
+   source /path/to/source/xzs-mysql.sql;
+   ```
+   或者直接复制 SQL 内容粘贴执行
+
+#### 方式 C：通过应用容器执行（如果已部署）
+
+如果应用已经部署，可以通过以下方式访问 SQL 文件：
+
+1. 在 Railway 中打开应用服务的终端
+2. 查看 SQL 文件内容：
+   ```bash
+   cat /app/sql/xzs-mysql.sql
+   ```
+3. 复制内容后，使用数据库连接工具执行
+
+**重要提示**：
+- 确保在应用启动前完成数据库初始化
+- 如果数据库已存在数据，执行 SQL 前请先备份
+- SQL 文件包含 `SET FOREIGN_KEY_CHECKS = 0;`，会删除现有表，请谨慎操作
 
 ### 7. 部署
 

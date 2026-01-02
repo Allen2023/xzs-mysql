@@ -1,6 +1,6 @@
 # 多阶段构建 Dockerfile for Railway
 # 第一阶段：构建阶段
-FROM maven:3.8.6-openjdk-8-slim AS build
+FROM maven:3.8.6-eclipse-temurin-8 AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY xzs/pom.xml ./xzs/
 RUN mvn clean package -DskipTests -B
 
 # 第二阶段：运行阶段
-FROM openjdk:8-jre-slim
+FROM eclipse-temurin:8-jre
 
 # 设置工作目录
 WORKDIR /app
@@ -30,6 +30,9 @@ COPY --from=build /app/xzs/target/xzs-*.jar app.jar
 
 # 复制静态资源（如果需要）
 COPY --from=build /app/xzs/target/classes/static ./static
+
+# 复制 SQL 初始化文件到镜像中
+COPY xzs-mysql.sql /app/sql/xzs-mysql.sql
 
 # 暴露端口（Railway 会自动映射）
 EXPOSE 8000
